@@ -8,8 +8,8 @@ import com.syos.domain.exception.ItemNotFoundException;
 import com.syos.domain.exception.PaymentException;
 import com.syos.application.port.BillingService;
 import com.syos.application.port.StockManagementService;
-import com.syos.service.payment.CashPaymentStrategy;
-import com.syos.service.payment.PaymentStrategy;
+import com.syos.service.payment.CashPaymentMethod;
+import com.syos.service.payment.PaymentMethod;
 
 import java.math.BigDecimal; // Import BigDecimal
 import java.util.Scanner;
@@ -118,7 +118,7 @@ public class CounterSalesUI {
         }
 
         // 1. Create the specific payment strategy (now stateless, no constructor args)
-        PaymentStrategy cashPayment = new CashPaymentStrategy();
+        PaymentMethod cashPayment = new CashPaymentMethod();
 
         // 2. Pass the bill, the chosen strategy, stock service, and the amount tendered to the service.
         // The BillingService.finalizeBill method now expects four arguments.

@@ -7,34 +7,23 @@ import com.syos.domain.exception.DatabaseOperationException;
 import com.syos.domain.exception.InsufficientStockException;
 import com.syos.domain.exception.ItemNotFoundException;
 import com.syos.domain.exception.PaymentException;
-import com.syos.service.payment.PaymentStrategy;
+import com.syos.service.payment.PaymentMethod;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 
-
 public interface BillingService {
-    Bill startNewBill(TransactionType transactionType) throws DatabaseOperationException;
+
+    Bill startNewBill(TransactionType transactionType);
 
     void addItemToBill(Bill bill, String itemCode, int quantity)
-            throws ItemNotFoundException, InsufficientStockException, DatabaseOperationException;
+            throws ItemNotFoundException, DatabaseOperationException;
 
-    /**
-     * Finalizes the bill using a given payment strategy.
-     * @param bill The bill to finalize.
-     * @param paymentStrategy The payment method to use.
-     * @param stockManagementService The service to handle stock reduction.
-     * @param amountTendered The amount of money tendered by the customer.
-     * @return The finalized and saved Bill.
-     * @throws DatabaseOperationException if saving fails.
-     * @throws IllegalStateException if bill cannot be finalized.
-     * @throws PaymentException if the payment strategy fails.
-     */
-    Bill finalizeBill(Bill bill, PaymentStrategy paymentStrategy, StockManagementService stockManagementService, BigDecimal amountTendered) // <--- ADDED amountTendered
+    Bill finalizeBill(Bill bill, PaymentMethod paymentStrategy, StockManagementService stockManagementService, BigDecimal amountTendered)
             throws DatabaseOperationException, IllegalStateException, InsufficientStockException, ItemNotFoundException, PaymentException;
 
     void createBill(OnlineOrder onlineOrder, BigDecimal cashTendered, TransactionType transactionType) throws DatabaseOperationException;
 
-    Optional<Bill> getBillDetails(int billSerialNumber, LocalDate billDate) throws DatabaseOperationException;
+    Optional<Bill> getBillDetails(String billSerialNumber, LocalDate billDate) throws DatabaseOperationException;
 }

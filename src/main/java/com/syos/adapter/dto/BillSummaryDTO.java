@@ -1,28 +1,54 @@
 package com.syos.adapter.dto;
 
 import com.syos.domain.enums.TransactionType;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class BillSummaryDTO {
-    private final int billSerialNumber;
-    private final LocalDateTime billDate;
-    private final TransactionType transactionType;
-    private final String customerIdentifier;
-    private final BigDecimal finalTotalAmount;
+    private String billSerialNumber;
+    private LocalDateTime billDate;
+    private TransactionType transactionType;
+    private Integer userId; // Changed from String to Integer
+    private BigDecimal finalTotalAmount;
 
-    public BillSummaryDTO(int billSerialNumber, LocalDateTime billDate, TransactionType transactionType, String customerIdentifier, BigDecimal finalTotalAmount) {
+    public BillSummaryDTO(String billSerialNumber, LocalDateTime billDate, TransactionType transactionType, Integer userId, BigDecimal finalTotalAmount) {
         this.billSerialNumber = billSerialNumber;
         this.billDate = billDate;
         this.transactionType = transactionType;
-        this.customerIdentifier = (customerIdentifier == null || customerIdentifier.trim().isEmpty()) ? "N/A" : customerIdentifier;
+        this.userId = userId;
         this.finalTotalAmount = finalTotalAmount;
+    }
+
+    // Getters for display purposes
+    public String getBillSerialNumber() {
+        return billSerialNumber;
+    }
+
+    public LocalDateTime getBillDate() {
+        return billDate;
+    }
+
+    public TransactionType getTransactionType() {
+        return transactionType;
+    }
+
+    public Integer getUserId() { // Changed return type to Integer
+        return userId;
+    }
+
+    public BigDecimal getFinalTotalAmount() {
+        return finalTotalAmount;
     }
 
     @Override
     public String toString() {
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return String.format("%-10d | %-20s | %-12s | %-15s | %10.2f", billSerialNumber, billDate.format(dateFormatter), transactionType.name(), customerIdentifier, finalTotalAmount);
+        return "BillSummaryDTO{" +
+                "billSerialNumber='" + billSerialNumber + '\'' +
+                ", billDate=" + billDate +
+                ", transactionType=" + transactionType +
+                ", userId=" + userId + // No quotes needed for Integer
+                ", finalTotalAmount=" + finalTotalAmount +
+                '}';
     }
 }

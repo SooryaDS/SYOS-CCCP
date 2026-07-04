@@ -7,6 +7,8 @@ import com.syos.domain.exception.InsufficientStockException;
 import com.syos.domain.exception.ItemNotFoundException;
 import com.syos.domain.exception.OrderProcessingException;
 
+import java.util.Optional; // Import Optional
+
 public interface OnlineOrderingService {
 
     /**
@@ -71,4 +73,24 @@ public interface OnlineOrderingService {
      */
     Bill checkoutOrder(int onlineUserId, String shippingAddress)
             throws OrderProcessingException, DatabaseOperationException, InsufficientStockException, ItemNotFoundException;
+
+    /**
+     * Finds an OnlineOrder by its ID.
+     * @param orderId The ID of the order to find.
+     * @return An Optional containing the OnlineOrder if found, empty otherwise.
+     * @throws DatabaseOperationException If a database error occurs.
+     */
+    Optional<OnlineOrder> findOnlineOrderById(String orderId) throws DatabaseOperationException;
+
+    /**
+     * Updates the shipping address for the user's active (pending) order.
+     * @param onlineUserId The ID of the online user.
+     * @param newAddress The new shipping address.
+     * @return The updated OnlineOrder.
+     * @throws DatabaseOperationException If a database error occurs.
+     * @throws IllegalArgumentException If the new address is invalid.
+     * @throws IllegalStateException If the order is not in a PENDING state.
+     */
+    OnlineOrder updateShippingAddress(int onlineUserId, String newAddress)
+            throws DatabaseOperationException, IllegalArgumentException, IllegalStateException;
 }

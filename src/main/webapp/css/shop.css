@@ -1,0 +1,180 @@
+/* Page background */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(120deg, #a1c4fd, #c2e9fb);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+/* Main container */
+.container {
+    background: white;
+    padding: 40px 50px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    margin-top: 60px;
+    max-width: 1000px; /* expanded */
+    width: 95%;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Heading */
+h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #222;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+/* Message boxes */
+.message {
+    text-align: center;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+.message.success {
+    background-color: #e8f8e8;
+    color: #2e7d32;
+}
+.message.error {
+    background-color: #fdecea;
+    color: #c62828;
+}
+
+/* Form wrapper for alignment */
+form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+form label {
+    font-weight: 500;
+    color: #333;
+}
+
+form select,
+form input[type="number"],
+form input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 180px;
+    flex-shrink: 0;
+}
+
+form button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background-color: #4a90e2;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.3s ease;
+    min-width: 100px;
+}
+
+form button:hover {
+    background-color: #357abd;
+}
+
+/* Specific colors for actions */
+button[value="add"] {
+    background-color: #28a745;
+}
+button[value="add"]:hover {
+    background-color: #218838;
+}
+
+button[value="update"] {
+    background-color: #ff9800;
+}
+button[value="update"]:hover {
+    background-color: #e68900;
+}
+
+button[value="remove"] {
+    background-color: #e53935;
+}
+button[value="remove"]:hover {
+    background-color: #c62828;
+}
+
+.checkout-btn {
+    background-color: #28a745;
+}
+.checkout-btn:hover {
+    background-color: #218838;
+}
+
+/* Table for cart */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+}
+
+table th, table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #f7f7f7;
+    color: #333;
+}
+
+table tr:hover {
+    background-color: #f1faff;
+}
+
+.total {
+    text-align: right;
+    font-weight: 600;
+    margin-top: 15px;
+    font-size: 16px;
+}
+
+/* Back link */
+a {
+    display: inline-block;
+    margin-top: 25px;
+    color: #4a90e2;
+    text-decoration: none;
+    font-weight: 600;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive behavior */
+@media (max-width: 800px) {
+    form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    form select,
+    form input,
+    form button {
+        width: 100%;
+    }
+}

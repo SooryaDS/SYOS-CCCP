@@ -1,58 +1,100 @@
 package com.syos.domain.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Objects;
 
 public class StockBatch {
-    private int batchId;
-    private String itemCode;
+    private Long batchId;
     private Item item;
-    private LocalDate purchaseDate;
-    private int quantityReceived;
+    private int receivedQuantity;
     private int currentQuantityInStore;
     private LocalDate expiryDate;
+    private BigDecimal costPerUnit;
+    private LocalDate receivedDate;
 
-    public StockBatch(String itemCode, LocalDate purchaseDate, int quantityReceived, LocalDate expiryDate) {
-        if (itemCode == null || itemCode.trim().isEmpty()) throw new IllegalArgumentException("Item code cannot be null or empty for a stock batch.");
-        if (purchaseDate == null) throw new IllegalArgumentException("Purchase date cannot be null.");
-        if (quantityReceived <= 0) throw new IllegalArgumentException("Quantity received must be positive.");
-        this.itemCode = itemCode;
-        this.purchaseDate = purchaseDate;
-        this.quantityReceived = quantityReceived;
-        this.currentQuantityInStore = quantityReceived;
-        this.expiryDate = expiryDate;
+    // No-arg constructor for frameworks that require it (e.g., ORMs, JSON deserialization)
+    public StockBatch() {
     }
 
-    public StockBatch(int batchId, String itemCode, LocalDate purchaseDate, int quantityReceived, int currentQuantityInStore, LocalDate expiryDate) {
-        this(itemCode, purchaseDate, quantityReceived, expiryDate);
+    // Full constructor used in tests and potentially in application logic
+    public StockBatch(Long batchId, Item item, int receivedQuantity, int currentQuantityInStore, LocalDate expiryDate, BigDecimal costPerUnit, LocalDate receivedDate) {
         this.batchId = batchId;
+        this.item = item;
+        this.receivedQuantity = receivedQuantity;
+        this.currentQuantityInStore = currentQuantityInStore;
+        this.expiryDate = expiryDate;
+        this.costPerUnit = costPerUnit;
+        this.receivedDate = receivedDate;
+    }
+
+    // --- Getters ---
+    public Long getBatchId() {
+        return batchId;
+    }
+
+    public Item getItem() {
+        return item;
+    }
+
+    public int getReceivedQuantity() {
+        return receivedQuantity;
+    }
+
+    public int getCurrentQuantityInStore() {
+        return currentQuantityInStore;
+    }
+
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
+
+    public BigDecimal getCostPerUnit() {
+        return costPerUnit;
+    }
+
+    public LocalDate getReceivedDate() {
+        return receivedDate;
+    }
+
+    // --- Setters ---
+    public void setBatchId(Long batchId) {
+        this.batchId = batchId;
+    }
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public void setReceivedQuantity(int receivedQuantity) {
+        this.receivedQuantity = receivedQuantity;
+    }
+
+    public void setCurrentQuantityInStore(int currentQuantityInStore) {
         this.currentQuantityInStore = currentQuantityInStore;
     }
 
-    public int getBatchId() { return batchId; }
-    public void setBatchId(int batchId) { this.batchId = batchId; }
-    public String getItemCode() { return itemCode; }
-    public Item getItem() { return item; }
-    public void setItem(Item item) { this.item = item; }
-    public LocalDate getPurchaseDate() { return purchaseDate; }
-    public int getQuantityReceived() { return quantityReceived; }
-    public int getCurrentQuantityInStore() { return currentQuantityInStore; }
-    public void setCurrentQuantityInStore(int currentQuantityInStore) { if (currentQuantityInStore < 0 || currentQuantityInStore > this.quantityReceived) throw new IllegalArgumentException("Current quantity in store cannot be negative or exceed quantity received."); this.currentQuantityInStore = currentQuantityInStore; }
-    public LocalDate getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
+    }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        StockBatch that = (StockBatch) o;
-        if (batchId != 0 && that.batchId != 0) return batchId == that.batchId;
-        return quantityReceived == that.quantityReceived && currentQuantityInStore == that.currentQuantityInStore && Objects.equals(itemCode, that.itemCode) && Objects.equals(purchaseDate, that.purchaseDate) && Objects.equals(expiryDate, that.expiryDate);
+    public void setCostPerUnit(BigDecimal costPerUnit) {
+        this.costPerUnit = costPerUnit;
+    }
+
+    public void setReceivedDate(LocalDate receivedDate) {
+        this.receivedDate = receivedDate;
     }
 
     @Override
-    public int hashCode() {
-        if (batchId != 0) return Objects.hash(batchId);
-        return Objects.hash(itemCode, purchaseDate, quantityReceived, currentQuantityInStore, expiryDate);
+    public String toString() {
+        return "StockBatch{" +
+                "batchId=" + batchId +
+                ", item=" + (item != null ? item.getItemCode() : "null") +
+                ", receivedQuantity=" + receivedQuantity +
+                ", currentQuantityInStore=" + currentQuantityInStore +
+                ", expiryDate=" + expiryDate +
+                ", costPerUnit=" + costPerUnit +
+                ", receivedDate=" + receivedDate +
+                '}';
     }
 }

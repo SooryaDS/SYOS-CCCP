@@ -36,3 +36,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+
+.smarttomcat/
+target/
+.idea/
+*.iml

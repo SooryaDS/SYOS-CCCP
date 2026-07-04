@@ -2,6 +2,7 @@ package com.syos.adapter.in.CLI;
 
 import com.syos.domain.exception.DatabaseOperationException;
 import com.syos.domain.exception.UserAlreadyExistsException;
+
 import com.syos.application.port.OnlineUserService;
 
 import java.util.Scanner;
@@ -16,11 +17,12 @@ public class UserUI {
     }
 
     public void displayUserMenu() {
-        System.out.println("\n--- Online User Management Menu ---");
+        System.out.println("\n--- ONLINE USER MANAGEMENT ---"); // Changed from full line
+        System.out.println("----------------------------------------"); // Single line after title
         System.out.println("1. Register New Online User");
-        // Add more options later: Login, View Profile, etc.
+        System.out.println("----------------------------------------"); // Line before exit option
         System.out.println("0. Back to Main Menu");
-        System.out.print("Enter choice: ");
+        System.out.println("----------------------------------------"); // Final line
     }
 
     public boolean handleUserAction(int choice) {
@@ -28,23 +30,24 @@ public class UserUI {
             case 1:
                 handleRegisterNewUser();
                 break;
-            // Add cases for other user actions
             case 0:
-                return false; // Go back to main menu
+                return false;
             default:
                 System.out.println("Invalid choice. Please try again.");
         }
-        return true; // Stay in user menu by default
+        return true;
     }
 
     private void handleRegisterNewUser() {
         try {
-            System.out.println("\n--- Register New Online User ---");
+            System.out.println("\n--- REGISTER NEW USER ---"); // Changed from full line
+            System.out.println("-----------------------------------"); // Single line after title
+
             System.out.print("Enter Username: ");
             String username = scanner.nextLine().trim();
 
             System.out.print("Enter Password: ");
-            String password = scanner.nextLine().trim(); // In a real app, consider using Console.readPassword()
+            String password = scanner.nextLine().trim();
 
             System.out.print("Enter Full Name (optional): ");
             String fullName = scanner.nextLine().trim();
@@ -58,7 +61,9 @@ public class UserUI {
             onlineUserService.registerUser(username, password, fullName, email, address);
             System.out.println("User '" + username + "' registered successfully!");
 
-        } catch (UserAlreadyExistsException | DatabaseOperationException | IllegalArgumentException e) {
+        } catch (UserAlreadyExistsException e) {
+            System.out.println("Registration failed: " + e.getMessage());
+        } catch (DatabaseOperationException | IllegalArgumentException e) {
             System.out.println("Error registering user: " + e.getMessage());
         } catch (Exception e) {
             System.out.println("An unexpected error occurred during registration: " + e.getMessage());

@@ -17,13 +17,13 @@ import com.syos.adapter.out.DatabaseSpecificAdaptors.repository.ItemRepository;
 import com.syos.adapter.out.DatabaseSpecificAdaptors.repository.ShelfStockRepository;
 import com.syos.adapter.out.DatabaseSpecificAdaptors.repository.StockBatchRepository;
 
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ReportingServiceImplementation implements ReportingService {
 
@@ -31,7 +31,6 @@ public class ReportingServiceImplementation implements ReportingService {
     private final ItemRepository itemRepository;
     private final StockBatchRepository stockBatchRepository;
     private final ShelfStockRepository shelfStockRepository;
-
 
     public ReportingServiceImplementation(BillRepository billRepository,
                                           ItemRepository itemRepository,
@@ -50,15 +49,19 @@ public class ReportingServiceImplementation implements ReportingService {
             throw new IllegalArgumentException("Date cannot be null for daily sales report.");
         }
 
-        // Correctly unwrap the Optional TransactionType for the repository call
         TransactionType type = transactionTypeFilter.orElse(null);
 
         List<DailySalesReportItemDTO> salesItems = billRepository.findSalesDataByDateAndType(date, type);
-        BigDecimal overallTotalRevenue = BigDecimal.ZERO;
-        for (DailySalesReportItemDTO itemDTO : salesItems) {
-            overallTotalRevenue = overallTotalRevenue.add(itemDTO.getTotalRevenueForItem());
-        }
-        return new DailySalesReportDTO(salesItems, overallTotalRevenue);
+
+        List<DailySalesReportItemDTO> filteredSalesItems = salesItems.stream()
+                .filter(item -> item.getTotalQuantitySold() > 0)
+                .collect(Collectors.toList());
+
+        BigDecimal overallTotalRevenue = filteredSalesItems.stream()
+                .map(DailySalesReportItemDTO::getTotalRevenueForItem)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new DailySalesReportDTO(filteredSalesItems, overallTotalRevenue);
     }
 
     @Override
@@ -67,28 +70,22 @@ public class ReportingServiceImplementation implements ReportingService {
         List<Item> allItems = itemRepository.findAll();
 
         for (Item item : allItems) {
-            int totalStockInStore = 0;
-            List<StockBatch> batchesInStore = stockBatchRepository.findByItemCode(item.getItemCode());
-            for (StockBatch batch : batchesInStore) {
-                totalStockInStore += batch.getCurrentQuantityInStore();
-            }
+            int totalStockInStore = stockBatchRepository.findByItem(item).stream()
+                    .mapToInt(StockBatch::getCurrentQuantityInStore)
+                    .sum();
 
-            // Note: website stock is not included here, which is fine if this report is only for physical store stock
-            int totalStockOnShelf = 0;
-            List<ShelfStock> shelfStocks = shelfStockRepository.findByItemCode(item.getItemCode());
-            for (ShelfStock shelfEntry : shelfStocks) {
-                totalStockOnShelf += shelfEntry.getQuantityOnShelf();
-            }
+            int totalStockOnShelf = shelfStockRepository.findByItem(item)
+                    .map(ShelfStock::getQuantityOnShelf)
+                    .orElse(0);
 
             int currentTotalStock = totalStockInStore + totalStockOnShelf;
 
-            // This comparison is for overall reorder level (store + shelf)
-            if (currentTotalStock < item.getReorderLevelThreshold()) {
+            if (currentTotalStock < item.getReorderLevel()) {
                 reorderItems.add(new ReorderReportItemDTO(
                         item.getItemCode(),
                         item.getName(),
                         currentTotalStock,
-                        item.getReorderLevelThreshold()
+                        item.getReorderLevel()
                 ));
             }
         }
@@ -101,24 +98,21 @@ public class ReportingServiceImplementation implements ReportingService {
         List<BatchStockReportItemDTO> reportItems = new ArrayList<>();
 
         for (StockBatch batch : allBatches) {
-            String itemName = itemRepository.findByItemCode(batch.getItemCode())
-                    .map(Item::getName)
-                    .orElse("Unknown Item");
-
             reportItems.add(new BatchStockReportItemDTO(
-                    batch.getItemCode(),
-                    itemName,
+                    batch.getItem().getItemCode(),
+                    batch.getItem().getName(),
                     batch.getBatchId(),
-                    batch.getPurchaseDate(),
-                    batch.getQuantityReceived(),
+                    batch.getReceivedDate(),
+                    batch.getReceivedQuantity(),
                     batch.getCurrentQuantityInStore(),
                     batch.getExpiryDate()
             ));
         }
+
         reportItems.sort(Comparator.comparing(BatchStockReportItemDTO::getItemCode)
-                .thenComparing(BatchStockReportItemDTO::getPurchaseDate)
-                .thenComparing(BatchStockReportItemDTO::getBatchId)
-        );
+                .thenComparing(BatchStockReportItemDTO::getReceivedDate)
+                .thenComparing(BatchStockReportItemDTO::getBatchId));
+
         return reportItems;
     }
 
@@ -128,21 +122,20 @@ public class ReportingServiceImplementation implements ReportingService {
         List<Item> allItems = itemRepository.findAll();
 
         for (Item item : allItems) {
-            int currentShelfQuantity = 0;
-            List<ShelfStock> shelfStocksForItem = shelfStockRepository.findByItemCode(item.getItemCode());
-            for (ShelfStock ss : shelfStocksForItem) {
-                currentShelfQuantity += ss.getQuantityOnShelf();
-            }
-            // Use the correct method: getMinShelfStockThreshold()
-            if (currentShelfQuantity < item.getMinShelfStockThreshold()) {
+            int currentShelfQuantity = shelfStockRepository.findByItem(item)
+                    .map(ShelfStock::getQuantityOnShelf)
+                    .orElse(0);
+
+            if (item.getReorderQuantity() > 0 && currentShelfQuantity < item.getReorderQuantity()) {
                 needsReshelving.add(new ReshelvingNeedsItemDTO(
                         item.getItemCode(),
                         item.getName(),
                         currentShelfQuantity,
-                        item.getMinShelfStockThreshold() // Use the correct method here too
+                        item.getReorderQuantity()
                 ));
             }
         }
+
         needsReshelving.sort(Comparator.comparing(ReshelvingNeedsItemDTO::getItemName));
         return needsReshelving;
     }
@@ -150,10 +143,17 @@ public class ReportingServiceImplementation implements ReportingService {
     @Override
     public List<BillSummaryDTO> generateBillTransactionReport(LocalDate startDate, LocalDate endDate, Optional<TransactionType> transactionTypeFilter)
             throws DatabaseOperationException {
-        // Correctly unwrap the Optional TransactionType for the repository call
-        TransactionType type = transactionTypeFilter.orElse(null);
+        if (startDate == null) {
+            throw new IllegalArgumentException("Start date cannot be null.");
+        }
+        if (endDate == null) {
+            throw new IllegalArgumentException("End date cannot be null.");
+        }
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Start date cannot be after end date.");
+        }
 
-        // Date validation can be added here if strict rules are needed (e.g., startDate before endDate)
+        TransactionType type = transactionTypeFilter.orElse(null);
         return billRepository.findAllBillSummaries(startDate, endDate, type);
     }
 }

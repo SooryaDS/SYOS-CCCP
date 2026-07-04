@@ -8,7 +8,6 @@ public class PasswordUtil {
 
     private static final String HASH_ALGORITHM = "SHA-256";
 
-    // Basic hashing - as per your original code.
     public static String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);
@@ -19,7 +18,6 @@ public class PasswordUtil {
         }
     }
 
-    // Basic verification - as per your original code.
     public static boolean verifyPassword(String plainPassword, String hashedPassword) {
         String newHash = hashPassword(plainPassword);
         return newHash.equals(hashedPassword);

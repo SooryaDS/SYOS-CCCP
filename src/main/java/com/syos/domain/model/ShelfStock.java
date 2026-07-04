@@ -4,47 +4,72 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class ShelfStock {
-    private int shelfStockId;
-    private String itemCode;
-    private int batchId;
+    private Long shelfStockId; // Changed from int to Long for consistency and best practice
+    private Item item; // Changed from String itemCode to Item object
+    // private int batchId; // Removed - assuming ShelfStock is an aggregate view per item, not per batch
     private int quantityOnShelf;
-    private LocalDateTime lastStockedDate;
+    private LocalDateTime lastUpdatedDate; // Renamed for general purpose clarity
 
-    public ShelfStock(String itemCode, int batchId, int quantityOnShelf) {
-        if (itemCode == null || itemCode.trim().isEmpty()) throw new IllegalArgumentException("Item code cannot be null or empty for shelf stock.");
-        if (batchId <= 0) throw new IllegalArgumentException("Batch ID must be positive for shelf stock.");
+    // No-arg constructor for frameworks (e.g., ORMs, JSON deserialization)
+    public ShelfStock() {
+    }
+
+    /**
+     * Full constructor for ShelfStock, typically used when retrieving from a database.
+     * @param shelfStockId The unique ID of this shelf stock entry.
+     * @param item The Item object this shelf stock is for.
+     * @param quantityOnShelf The current quantity of the item on the shelf.
+     * @param lastUpdatedDate The date and time this entry was last updated.
+     */
+    public ShelfStock(Long shelfStockId, Item item, int quantityOnShelf, LocalDateTime lastUpdatedDate) {
+        if (item == null) throw new IllegalArgumentException("Item cannot be null for shelf stock.");
         if (quantityOnShelf < 0) throw new IllegalArgumentException("Quantity on shelf cannot be negative.");
-        this.itemCode = itemCode;
-        this.batchId = batchId;
-        this.quantityOnShelf = quantityOnShelf;
-        this.lastStockedDate = LocalDateTime.now();
-    }
-
-    public ShelfStock(int shelfStockId, String itemCode, int batchId, int quantityOnShelf, LocalDateTime lastStockedDate) {
-        this(itemCode, batchId, quantityOnShelf);
         this.shelfStockId = shelfStockId;
-        this.lastStockedDate = lastStockedDate;
+        this.item = item;
+        this.quantityOnShelf = quantityOnShelf;
+        this.lastUpdatedDate = lastUpdatedDate;
     }
 
-    public int getShelfStockId() { return shelfStockId; }
-    public void setShelfStockId(int shelfStockId) { this.shelfStockId = shelfStockId; }
-    public String getItemCode() { return itemCode; }
-    public int getBatchId() { return batchId; }
+    /**
+     * Constructor for creating a new ShelfStock entry, typically before saving to database (ID is null).
+     * Automatically sets lastUpdatedDate to now.
+     * @param item The Item object this shelf stock is for.
+     * @param quantityOnShelf The current quantity of the item on the shelf.
+     */
+    public ShelfStock(Item item, int quantityOnShelf) {
+        this(null, item, quantityOnShelf, LocalDateTime.now());
+    }
+
+    // --- Getters ---
+    public Long getShelfStockId() { return shelfStockId; }
+    public Item getItem() { return item; }
     public int getQuantityOnShelf() { return quantityOnShelf; }
-    public void setQuantityOnShelf(int quantityOnShelf) { if (quantityOnShelf < 0) throw new IllegalArgumentException("Quantity on shelf cannot be negative."); this.quantityOnShelf = quantityOnShelf; }
-    public LocalDateTime getLastStockedDate() { return lastStockedDate; }
-    public void setLastStockedDate(LocalDateTime lastStockedDate) { this.lastStockedDate = lastStockedDate; }
+    public LocalDateTime getLastUpdatedDate() { return lastUpdatedDate; } // Renamed getter
+
+    // --- Setters ---
+    public void setShelfStockId(Long shelfStockId) { this.shelfStockId = shelfStockId; }
+    public void setItem(Item item) { this.item = item; }
+    public void setQuantityOnShelf(int quantityOnShelf) {
+        if (quantityOnShelf < 0) throw new IllegalArgumentException("Quantity on shelf cannot be negative.");
+        this.quantityOnShelf = quantityOnShelf;
+    }
+    public void setLastUpdatedDate(LocalDateTime lastUpdatedDate) { this.lastUpdatedDate = lastUpdatedDate; } // Renamed setter
+
+    // Generic getQuantity/setQuantity for compatibility with common interface patterns
+    public int getQuantity() { return getQuantityOnShelf(); }
+    public void setQuantity(int quantity) { setQuantityOnShelf(quantity); }
 
     public void addQuantity(int quantityToAdd) {
         if (quantityToAdd <= 0) throw new IllegalArgumentException("Quantity to add must be positive.");
         this.quantityOnShelf += quantityToAdd;
-        this.lastStockedDate = LocalDateTime.now();
+        this.lastUpdatedDate = LocalDateTime.now(); // Update timestamp on modification
     }
 
     public int reduceQuantity(int quantityToReduce) {
         if (quantityToReduce <= 0) throw new IllegalArgumentException("Quantity to reduce must be positive.");
         int actualReduced = Math.min(this.quantityOnShelf, quantityToReduce);
         this.quantityOnShelf -= actualReduced;
+        this.lastUpdatedDate = LocalDateTime.now(); // Update timestamp on modification
         return actualReduced;
     }
 
@@ -53,13 +78,29 @@ public class ShelfStock {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ShelfStock that = (ShelfStock) o;
-        if (shelfStockId != 0 && that.shelfStockId != 0) return shelfStockId == that.shelfStockId;
-        return batchId == that.batchId && Objects.equals(itemCode, that.itemCode);
+        // For an aggregated ShelfStock, equality is typically based on the Item it represents.
+        // If IDs are present, they are the primary key.
+        if (shelfStockId != null && that.shelfStockId != null) {
+            return Objects.equals(shelfStockId, that.shelfStockId);
+        }
+        return Objects.equals(item, that.item); // Assuming Item has proper equals/hashCode
     }
 
     @Override
     public int hashCode() {
-        if (shelfStockId != 0) return Objects.hash(shelfStockId);
-        return Objects.hash(itemCode, batchId);
+        if (shelfStockId != null) {
+            return Objects.hash(shelfStockId);
+        }
+        return Objects.hash(item); // Assuming Item has proper equals/hashCode
+    }
+
+    @Override
+    public String toString() {
+        return "ShelfStock{" +
+                "shelfStockId=" + shelfStockId +
+                ", item=" + (item != null ? item.getItemCode() : "null") + // Display item code for clarity
+                ", quantityOnShelf=" + quantityOnShelf +
+                ", lastUpdatedDate=" + lastUpdatedDate +
+                '}';
     }
 }

@@ -2,27 +2,30 @@ package com.syos.adapter.dto;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 public class BatchStockReportItemDTO {
     private String itemCode;
     private String itemName;
-    private int batchId;
-    private LocalDate purchaseDate;
+    private Long batchId;
+    private LocalDate receivedDate;
     private int quantityReceived;
     private int currentQuantityInStore;
     private LocalDate expiryDate;
 
-    public BatchStockReportItemDTO(String itemCode, String itemName, int batchId, LocalDate purchaseDate, int quantityReceived, int currentQuantityInStore, LocalDate expiryDate) {
+
+    public BatchStockReportItemDTO(String itemCode, String itemName, Long batchId, LocalDate receivedDate,
+                                   int quantityReceived, int currentQuantityInStore, LocalDate expiryDate) {
         this.itemCode = itemCode;
         this.itemName = itemName;
         this.batchId = batchId;
-        this.purchaseDate = purchaseDate;
+        this.receivedDate = receivedDate;
         this.quantityReceived = quantityReceived;
         this.currentQuantityInStore = currentQuantityInStore;
         this.expiryDate = expiryDate;
     }
 
-    // Getters
+    // --- Getters ---
     public String getItemCode() {
         return itemCode;
     }
@@ -31,12 +34,12 @@ public class BatchStockReportItemDTO {
         return itemName;
     }
 
-    public int getBatchId() {
+    public Long getBatchId() { // FIX: Returns Long
         return batchId;
     }
 
-    public LocalDate getPurchaseDate() { // ADDED: Missing getter for purchaseDate
-        return purchaseDate;
+    public LocalDate getReceivedDate() { // FIX: Renamed from getPurchaseDate
+        return receivedDate;
     }
 
     public int getQuantityReceived() {
@@ -52,8 +55,29 @@ public class BatchStockReportItemDTO {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BatchStockReportItemDTO that = (BatchStockReportItemDTO) o;
+        return Objects.equals(itemCode, that.itemCode) &&
+                Objects.equals(batchId, that.batchId) &&
+                Objects.equals(receivedDate, that.receivedDate);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(itemCode, batchId, receivedDate);
+    }
+
+    @Override
     public String toString() {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
-        return String.format("%-10s | %-20s | %-8d | %-12s | %-10d | %-10d | %-12s", itemCode, itemName, batchId, purchaseDate.format(dateFormatter), quantityReceived, currentQuantityInStore, expiryDate != null ? expiryDate.format(dateFormatter) : "N/A");
+
+        return String.format("%-10s | %-20s | %-8s | %-12s | %-10d | %-10d | %-12s",
+                itemCode, itemName, batchId.toString(),
+                receivedDate != null ? receivedDate.format(dateFormatter) : "N/A",
+                quantityReceived, currentQuantityInStore,
+                expiryDate != null ? expiryDate.format(dateFormatter) : "N/A");
     }
 }
